@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Binary Pro Elite - Full Terminal</title>
+    <title>Binary Pro Elite - Full Sync</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root { 
@@ -11,45 +11,26 @@
             --text-main: #ffffff; --text-muted: #848e9c;
         }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
-
-        /* HEADER */
         .header { position: absolute; top: 0; left: 0; right: 0; height: 65px; display: flex; align-items: center; justify-content: space-between; padding: 0 25px; background: var(--card); border-bottom: 1px solid var(--grid); z-index: 100; }
         .user-profile { display: flex; align-items: center; gap: 12px; }
-        .avatar { width: 35px; height: 35px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid var(--grid); }
+        .avatar { width: 35px; height: 35px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .user-status { font-size: 10px; color: var(--success); font-weight: 800; text-transform: uppercase; cursor: pointer; }
-        
-        .header-controls { display: flex; gap: 10px; align-items: center; }
-        .balance-box { background: rgba(14, 203, 129, 0.1); border: 1px solid var(--success); color: var(--success); padding: 7px 18px; border-radius: 10px; font-weight: 700; font-size: 15px; }
-        .withdraw-btn { background: rgba(0, 122, 255, 0.1); border: 1px solid var(--accent); color: var(--accent); padding: 7px 18px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 14px; transition: 0.2s; }
-        .withdraw-btn:hover { background: var(--accent); color: white; }
-
-        /* LAYOUT */
+        .balance-box { background: rgba(14, 203, 129, 0.1); border: 1px solid var(--success); color: var(--success); padding: 7px 18px; border-radius: 10px; font-weight: 700; }
+        .withdraw-btn { background: rgba(0, 122, 255, 0.1); border: 1px solid var(--accent); color: var(--accent); padding: 7px 18px; border-radius: 10px; cursor: pointer; font-weight: 700; }
         .wrapper { display: flex; width: 100%; height: 100vh; padding-top: 65px; box-sizing: border-box; }
         .left-menu { width: 260px; background: var(--card); border-right: 1px solid var(--grid); padding: 15px; }
-        .center-chart { flex: 1; position: relative; background: #080a0d; cursor: crosshair; }
+        .center-chart { flex: 1; position: relative; background: #080a0d; }
         .right-stats { width: 280px; background: var(--card); border-left: 1px solid var(--grid); padding: 15px; overflow: hidden; }
-
-        .nav-btn { padding: 14px; margin-bottom: 6px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; font-size: 13px; color: var(--text-muted); border: 1px solid transparent; }
+        .nav-btn { padding: 14px; margin-bottom: 6px; border-radius: 12px; cursor: pointer; color: var(--text-muted); border: 1px solid transparent; }
         .nav-btn.active { background: rgba(0, 122, 255, 0.1); border-color: var(--accent); color: white; }
-
-        /* TRADE PANEL */
-        .trade-panel { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--card); padding: 18px 25px; border-radius: 20px; border: 1px solid var(--grid); display: flex; gap: 20px; align-items: center; z-index: 100; box-shadow: 0 15px 50px rgba(0,0,0,0.6); }
-        .input-group { display: flex; flex-direction: column; gap: 5px; }
-        .input-group label { font-size: 9px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; }
-        .t-input { background: #0b0e11; border: 1px solid var(--grid); color: white; padding: 10px; border-radius: 8px; width: 90px; outline: none; font-weight: bold; }
-        
-        .btn-action { padding: 12px 35px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .trade-panel { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--card); padding: 18px 25px; border-radius: 20px; border: 1px solid var(--grid); display: flex; gap: 20px; align-items: center; z-index: 100; }
+        .t-input { background: #0b0e11; border: 1px solid var(--grid); color: white; padding: 10px; border-radius: 8px; width: 90px; outline: none; }
+        .btn-action { padding: 12px 35px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; text-transform: uppercase; }
         .btn-up { background: var(--success); color: white; }
         .btn-down { background: var(--danger); color: white; }
-
-        /* MODALS */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-card { background: var(--card); padding: 35px; border-radius: 28px; border: 1px solid var(--grid); width: 420px; text-align: center; }
-
-        /* LIVE FEED */
-        .feed-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--grid); font-size: 12px; animation: slideIn 0.3s ease; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-
+        .feed-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--grid); font-size: 12px; }
         #price-label { position: absolute; right: 0; background: var(--accent); color: white; padding: 4px 12px; font-size: 14px; font-weight: bold; border-radius: 6px 0 0 6px; z-index: 50; }
     </style>
 </head>
@@ -67,14 +48,21 @@
     <div id="deposit-modal" class="modal-overlay">
         <div class="modal-card">
             <h3>ПОПОЛНЕНИЕ</h3>
-            <p style="font-size:12px; color:var(--text-muted)">Отправьте TON на адрес ниже:</p>
-            <div style="background:var(--bg); padding:10px; border-radius:10px; font-size:11px; word-break:break-all; margin:15px 0; border:1px solid var(--grid)">
-                UQBTTYmiLQCee3C9T9yHQN8EflmXWNp1DN4BlKj1dJCbpAk-
-            </div>
-            <div id="dep-id-text" style="color:var(--accent); font-weight:bold; margin-bottom:15px;">ID: TX-0000</div>
-            <input type="number" id="dep-sum" class="t-input" style="width:100%; margin-bottom:15px;" placeholder="Сумма в $">
-            <button class="btn-action btn-up" style="width:100%" onclick="window.sendDepRequest()">Я ОПЛАТИЛ</button>
+            <p style="font-size:12px;">TON: <b>UQBTTYmiLQCee3C9T9yHQN8EflmXWNp1DN4BlKj1dJCbpAk-</b></p>
+            <div id="dep-id-text" style="color:var(--accent); font-weight:bold; margin:15px;">ID: TX-0000</div>
+            <input type="number" id="dep-sum" class="t-input" style="width:100%; margin-bottom:15px;" placeholder="Сумма $">
+            <button class="btn-action btn-up" style="width:100%" onclick="window.sendRequest('DEPOSIT')">Я ОПЛАТИЛ</button>
             <button onclick="window.closeModal('deposit-modal')" style="background:none; border:none; color:var(--text-muted); margin-top:15px; cursor:pointer">Закрыть</button>
+        </div>
+    </div>
+
+    <div id="withdraw-modal" class="modal-overlay">
+        <div class="modal-card">
+            <h3>ВЫВОД СРЕДСТВ</h3>
+            <input type="text" id="win-address" class="t-input" style="width:100%; margin-bottom:12px;" placeholder="Адрес кошелька">
+            <input type="number" id="win-sum" class="t-input" style="width:100%; margin-bottom:15px;" placeholder="Сумма $">
+            <button class="btn-action btn-down" style="width:100%" onclick="window.sendRequest('WITHDRAW')">СОЗДАТЬ ЗАЯВКУ</button>
+            <button onclick="window.closeModal('withdraw-modal')" style="background:none; border:none; color:var(--text-muted); margin-top:15px; cursor:pointer">Отмена</button>
         </div>
     </div>
 
@@ -96,7 +84,7 @@
         </div>
         <div style="font-weight:900; font-size:22px">BINARY<span style="color:var(--accent)">PRO</span></div>
         <div class="header-controls">
-            <div class="withdraw-btn" onclick="alert('Минимальный вывод: $500')">ВЫВЕСТИ</div>
+            <div class="withdraw-btn" onclick="window.openWithdraw()">ВЫВЕСТИ</div>
             <div class="balance-box" onclick="window.openDeposit()" style="cursor:pointer">💰 $<span id="balance-val">0.00</span></div>
         </div>
     </div>
@@ -110,20 +98,20 @@
             <div id="price-label">0.0000</div>
             <canvas id="mainCanvas"></canvas>
             <div class="trade-panel">
-                <div class="input-group"><label>Amount</label><input type="number" id="trade-amount" class="t-input" value="100"></div>
+                <input type="number" id="trade-amount" class="t-input" value="100">
                 <button class="btn-action btn-up" onclick="window.execTrade('UP')">Higher</button>
                 <button class="btn-action btn-down" onclick="window.execTrade('DOWN')">Lower</button>
             </div>
         </div>
         <div class="right-stats">
-            <div style="font-size:11px; font-weight:800; color:var(--text-muted); margin-bottom:15px; text-transform:uppercase">Live Trading Feed</div>
+            <div style="font-size:11px; font-weight:800; color:var(--text-muted); margin-bottom:15px;">Live Trading Feed</div>
             <div id="live-feed"></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, onValue, remove, update, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAK46OnSgyg2PzfINXBetYjsFklE17wt50",
@@ -139,73 +127,84 @@
         const db = getDatabase(app);
 
         const ADMIN_EMAIL = "admin@gmail.com";
-        let balance = 0, curPrice = 1.0854, candles = [], currentUser = null;
+        let curPrice = 1.0854, candles = [], currentUser = null;
         const canvas = document.getElementById('mainCanvas'), ctx = canvas.getContext('2d');
 
         // BOT SYSTEM
-        const botNames = ["Ivan_T", "CryptoPro", "Elena_FX", "Dmitry_S", "Trader99", "Nikita_Trade", "M.Vasiliev", "Rich_Bot"];
         setInterval(() => {
             const feed = document.getElementById('live-feed');
+            const names = ["Ivan_T", "CryptoPro", "Elena_FX", "Dmitry_S"];
             const isUp = Math.random() > 0.5;
             const item = document.createElement('div');
             item.className = 'feed-item';
-            item.innerHTML = `<span>${botNames[Math.floor(Math.random()*botNames.length)]}</span>
-                             <span style="color:${isUp?'var(--success)':'var(--danger)'}">${isUp?'▲':'▼'} $${(Math.random()*500+10).toFixed(0)}</span>`;
+            item.innerHTML = `<span>${names[Math.floor(Math.random()*4)]}</span><span style="color:${isUp?'var(--success)':'var(--danger)'}">$${(Math.random()*500).toFixed(0)}</span>`;
             feed.prepend(item);
-            if(feed.children.length > 15) feed.lastChild.remove();
-        }, 3000);
+            if(feed.children.length > 12) feed.lastChild.remove();
+        }, 4000);
 
-        window.handleAuth = () => {
+        window.handleAuth = async () => {
             const email = document.getElementById('auth-email').value;
             const pass = document.getElementById('auth-pass').value;
             if(!email.includes('@')) return alert("Invalid Email");
-            let user = JSON.parse(localStorage.getItem('up_user_' + email));
-            if(!user) user = { email, pass, balance: 0, name: email.split('@')[0] };
-            if(user.pass !== pass) return alert("Wrong Password");
-            currentUser = user; balance = user.balance;
+            
+            const userKey = email.replace(/\./g, '_');
+            const userRef = ref(db, 'users/' + userKey);
+            const snapshot = await get(userRef);
+            
+            if (snapshot.exists()) {
+                currentUser = snapshot.val();
+                if(currentUser.pass !== pass) return alert("Wrong Password");
+            } else {
+                currentUser = { email, pass, balance: 0, name: email.split('@')[0] };
+                await set(userRef, currentUser);
+            }
+            
             document.getElementById('auth-modal').style.display = 'none';
-            window.updateUI(); window.generateInitialData(curPrice); window.draw();
+            onValue(userRef, (s) => { if(s.exists()){ currentUser = s.val(); window.updateUI(); } });
+            window.generateInitialData(curPrice); window.draw();
         };
 
         window.updateUI = () => {
-            document.getElementById('balance-val').innerText = balance.toFixed(2);
+            document.getElementById('balance-val').innerText = currentUser.balance.toFixed(2);
             document.getElementById('user-name-label').innerText = currentUser.name;
             document.getElementById('user-av').innerText = currentUser.name[0].toUpperCase();
-            currentUser.balance = balance; localStorage.setItem('up_user_' + currentUser.email, JSON.stringify(currentUser));
         };
 
         window.openDeposit = () => {
-            document.getElementById('dep-id-text').innerText = "COMMENT: TX-" + Math.floor(1000 + Math.random()*8999);
+            document.getElementById('dep-id-text').innerText = "ID: TX-" + Math.floor(1000 + Math.random()*8999);
             document.getElementById('deposit-modal').style.display = 'flex';
         };
 
-        window.sendDepRequest = () => {
-            const sum = parseFloat(document.getElementById('dep-sum').value);
-            if(!sum || sum <= 0) return alert("Enter sum");
+        window.openWithdraw = () => { document.getElementById('withdraw-modal').style.display = 'flex'; };
+
+        window.sendRequest = (type) => {
+            const sum = type === 'DEPOSIT' ? parseFloat(document.getElementById('dep-sum').value) : parseFloat(document.getElementById('win-sum').value);
+            const extra = type === 'WITHDRAW' ? document.getElementById('win-address').value : document.getElementById('dep-id-text').innerText;
+            
+            if(!sum || sum <= 0) return alert("Введите сумму");
+            if(type === 'WITHDRAW' && sum > currentUser.balance) return alert("Недостаточно средств");
+
             push(ref(db, 'admin_requests'), {
-                type: 'DEPOSIT', email: currentUser.email, amount: sum, id: document.getElementById('dep-id-text').innerText, status: 'pending', time: new Date().toLocaleTimeString()
+                type, email: currentUser.email, amount: sum, extra, status: 'pending', time: new Date().toLocaleTimeString()
             });
-            alert("Заявка отправлена!"); window.closeModal('deposit-modal');
+            alert("Заявка отправлена!");
+            window.closeModal(type === 'DEPOSIT' ? 'deposit-modal' : 'withdraw-modal');
         };
 
         window.openAdmin = () => {
-            if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+            if (currentUser.email !== ADMIN_EMAIL) return;
             onValue(ref(db, 'admin_requests'), (snapshot) => {
                 const data = snapshot.val();
                 const list = document.getElementById('admin-list');
-                list.innerHTML = data ? '' : '<p>Нет заявок</p>';
+                list.innerHTML = data ? '' : '<p>Заявок нет</p>';
                 if(data) {
                     Object.keys(data).forEach(key => {
                         const r = data[key];
-                        const isConfirmed = r.status === 'confirmed';
-                        list.innerHTML += `<div style="background:var(--bg); padding:15px; margin-bottom:10px; border-radius:12px; border:1px solid ${isConfirmed?'#0ecb81':'#1e2329'}">
-                            <div style="display:flex; justify-content:space-between">
-                                <b>${r.type} | $${r.amount}</b>
-                                <span style="color:${isConfirmed?'#0ecb81':'#f6465d'}">${isConfirmed?'ОПЛАЧЕНО':'ОЖИДАНИЕ'}</span>
-                            </div>
-                            <small>${r.email} | ${r.id}</small><br>
+                        const isDone = r.status === 'confirmed';
+                        list.innerHTML += `<div style="background:var(--bg); padding:15px; margin-bottom:10px; border-radius:12px; border:1px solid ${isDone?'#0ecb81':'#1e2329'}">
+                            <b>${r.type} | $${r.amount}</b><br><small>${r.email}</small><br>
                             <div style="margin-top:10px">
-                                <button onclick="window.confirmReq('${key}')" style="background:#0ecb81; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer">ПОДТВЕРДИТЬ</button>
+                                ${!isDone ? `<button onclick="window.confirmReq('${key}', '${r.email}', ${r.amount}, '${r.type}')" style="background:#0ecb81; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer">ПОДТВЕРДИТЬ</button>` : ''}
                                 <button onclick="window.rejectReq('${key}')" style="background:#f6465d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; margin-left:10px">УДАЛИТЬ</button>
                             </div>
                         </div>`;
@@ -215,10 +214,20 @@
             document.getElementById('admin-modal').style.display = 'flex';
         };
 
-        window.confirmReq = (key) => { update(ref(db, 'admin_requests/' + key), { status: 'confirmed' }); };
-        window.rejectReq = (key) => { remove(ref(db, 'admin_requests/' + key)); };
+        window.confirmReq = async (key, email, amount, type) => {
+            const userKey = email.replace(/\./g, '_');
+            const userRef = ref(db, 'users/' + userKey);
+            const snapshot = await get(userRef);
+            if(snapshot.exists()) {
+                let newBalance = snapshot.val().balance + (type === 'DEPOSIT' ? amount : -amount);
+                await update(userRef, { balance: newBalance });
+                await update(ref(db, 'admin_requests/' + key), { status: 'confirmed' });
+            }
+        };
 
-        // CHART LOGIC
+        window.rejectReq = (key) => remove(ref(db, 'admin_requests/' + key));
+
+        // CHART & TRADE
         window.generateInitialData = (p) => {
             candles = []; let tp = p;
             for(let i=0; i<100; i++) {
@@ -234,11 +243,9 @@
             curPrice += (Math.random()-0.5)*0.0001; last.close = curPrice;
             if(Math.random()>0.97) candles.push({open:curPrice, close:curPrice, high:curPrice, low:curPrice});
             if(candles.length > 120) candles.shift();
-
             let vis = candles.slice(-60);
             let minP = Math.min(...vis.map(c=>c.low)), maxP = Math.max(...vis.map(c=>c.high)), range = maxP - minP;
             const getY = (p) => canvas.height - ((p-(minP-range*0.1))/(range*1.2)*canvas.height);
-
             ctx.clearRect(0,0,canvas.width,canvas.height);
             candles.forEach((c, i) => {
                 let x = (i*15) + (canvas.width - candles.length*15) - 50;
@@ -252,13 +259,16 @@
             requestAnimationFrame(window.draw);
         };
 
-        window.execTrade = (dir) => {
+        window.execTrade = async (dir) => {
             let amt = parseFloat(document.getElementById('trade-amount').value);
-            if(amt > balance) return alert("No funds");
-            balance -= amt; window.updateUI();
-            setTimeout(() => {
-                if(Math.random() > 0.45) { balance += amt * 1.85; confetti(); }
-                window.updateUI();
+            if(amt > currentUser.balance) return alert("No funds");
+            const userKey = currentUser.email.replace(/\./g, '_');
+            await update(ref(db, 'users/' + userKey), { balance: currentUser.balance - amt });
+            setTimeout(async () => {
+                if(Math.random() > 0.45) { 
+                    await update(ref(db, 'users/' + userKey), { balance: currentUser.balance + (amt * 1.85) });
+                    confetti(); 
+                }
             }, 3000);
         };
 
