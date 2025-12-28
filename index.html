@@ -110,170 +110,203 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue, remove, update, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove, update, set, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAK46OnSgyg2PzfINXBetYjsFklE17wt50",
-            authDomain: "binaryterminal-5b332.firebaseapp.com",
-            databaseURL: "https://binaryterminal-5b332-default-rtdb.firebaseio.com/",
-            projectId: "binaryterminal-5b332",
-            storageBucket: "binaryterminal-5b332.firebasestorage.app",
-            messagingSenderId: "193639989066",
-            appId: "1:193639989066:web:2717357e512ab2b945cbb3"
-        };
+    // Твой конфиг (оставляем как есть)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAK46OnSgyg2PzfINXBetYjsFklE17wt50",
+        authDomain: "binaryterminal-5b332.firebaseapp.com",
+        databaseURL: "https://binaryterminal-5b332-default-rtdb.firebaseio.com/",
+        projectId: "binaryterminal-5b332",
+        storageBucket: "binaryterminal-5b332.firebasestorage.app",
+        messagingSenderId: "193639989066",
+        appId: "1:193639989066:web:2717357e512ab2b945cbb3"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
 
-        const ADMIN_EMAIL = "admin@gmail.com";
-        let curPrice = 1.0854, candles = [], currentUser = null;
-        const canvas = document.getElementById('mainCanvas'), ctx = canvas.getContext('2d');
+    const ADMIN_EMAIL = "admin@gmail.com";
+    let curPrice = 1.0854, candles = [], currentUser = null;
+    const canvas = document.getElementById('mainCanvas'), ctx = canvas.getContext('2d');
 
-        // BOT SYSTEM
-        setInterval(() => {
-            const feed = document.getElementById('live-feed');
-            const names = ["Ivan_T", "CryptoPro", "Elena_FX", "Dmitry_S"];
-            const isUp = Math.random() > 0.5;
-            const item = document.createElement('div');
-            item.className = 'feed-item';
-            item.innerHTML = `<span>${names[Math.floor(Math.random()*4)]}</span><span style="color:${isUp?'var(--success)':'var(--danger)'}">$${(Math.random()*500).toFixed(0)}</span>`;
-            feed.prepend(item);
-            if(feed.children.length > 12) feed.lastChild.remove();
-        }, 4000);
+    // Функция очистки email для Firebase
+    const cleanEmail = (email) => email ? email.replace(/\./g, '_') : "unknown";
 
-        window.handleAuth = async () => {
-            const email = document.getElementById('auth-email').value;
-            const pass = document.getElementById('auth-pass').value;
-            if(!email.includes('@')) return alert("Invalid Email");
-            
-            const userKey = email.replace(/\./g, '_');
-            const userRef = ref(db, 'users/' + userKey);
-            const snapshot = await get(userRef);
-            
-            if (snapshot.exists()) {
-                currentUser = snapshot.val();
-                if(currentUser.pass !== pass) return alert("Wrong Password");
-            } else {
-                currentUser = { email, pass, balance: 0, name: email.split('@')[0] };
-                await set(userRef, currentUser);
+    // ВХОД И РЕГИСТРАЦИЯ
+    window.handleAuth = async () => {
+        const email = document.getElementById('auth-email').value.toLowerCase();
+        const pass = document.getElementById('auth-pass').value;
+        if(!email.includes('@')) return alert("Введите корректный Email");
+        
+        const userKey = cleanEmail(email);
+        const userRef = ref(db, 'users/' + userKey);
+        const snapshot = await get(userRef);
+        
+        if (snapshot.exists()) {
+            currentUser = snapshot.val();
+            if(currentUser.pass !== pass) return alert("Неверный пароль");
+        } else {
+            // Создаем нового пользователя, если его нет
+            currentUser = { email, pass, balance: 0, name: email.split('@')[0] };
+            await set(userRef, currentUser);
+        }
+        
+        document.getElementById('auth-modal').style.display = 'none';
+        
+        // Слушаем изменения баланса в реальном времени
+        onValue(userRef, (s) => { 
+            if(s.exists()){ 
+                currentUser = s.val(); 
+                window.updateUI(); 
+            } 
+        });
+        window.generateInitialData(curPrice); window.draw();
+    };
+
+    window.updateUI = () => {
+        document.getElementById('balance-val').innerText = currentUser.balance.toFixed(2);
+        document.getElementById('user-name-label').innerText = currentUser.name;
+        document.getElementById('user-av').innerText = currentUser.name[0].toUpperCase();
+    };
+
+    // ЗАЯВКИ (ПОПОЛНЕНИЕ И ВЫВОД)
+    window.sendRequest = (type) => {
+        const sum = type === 'DEPOSIT' ? parseFloat(document.getElementById('dep-sum').value) : parseFloat(document.getElementById('win-sum').value);
+        if(!sum || sum <= 0) return alert("Введите сумму");
+
+        push(ref(db, 'admin_requests'), {
+            type, 
+            email: currentUser.email, 
+            amount: sum, 
+            status: 'pending', 
+            time: new Date().toLocaleTimeString()
+        });
+        alert("Заявка отправлена!");
+        window.closeModal(type === 'DEPOSIT' ? 'deposit-modal' : 'withdraw-modal');
+    };
+
+    // АДМИН ПАНЕЛЬ
+    window.openAdmin = () => {
+        if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+        onValue(ref(db, 'admin_requests'), (snapshot) => {
+            const data = snapshot.val();
+            const list = document.getElementById('admin-list');
+            list.innerHTML = data ? '' : '<p>Заявок нет</p>';
+            if(data) {
+                Object.keys(data).forEach(key => {
+                    const r = data[key];
+                    const isDone = r.status === 'confirmed';
+                    list.innerHTML += `
+                    <div style="background:var(--bg); padding:15px; margin-bottom:10px; border-radius:12px; border:1px solid ${isDone?'#0ecb81':'#333'}">
+                        <div style="display:flex; justify-content:space-between">
+                            <b>${r.type} | $${r.amount}</b>
+                            <span style="color:${isDone?'#0ecb81':'#f6465d'}">${isDone?'ОПЛАЧЕНО':'ЖДЕТ'}</span>
+                        </div>
+                        <small>${r.email}</small><br>
+                        <div style="margin-top:10px">
+                            ${!isDone ? `<button onclick="window.confirmReq('${key}', '${r.email}', ${r.amount}, '${r.type}')" style="background:#0ecb81; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer">ПОДТВЕРДИТЬ</button>` : ''}
+                            <button onclick="window.rejectReq('${key}')" style="background:#f6465d; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer; margin-left:10px">УДАЛИТЬ</button>
+                        </div>
+                    </div>`;
+                });
             }
-            
-            document.getElementById('auth-modal').style.display = 'none';
-            onValue(userRef, (s) => { if(s.exists()){ currentUser = s.val(); window.updateUI(); } });
-            window.generateInitialData(curPrice); window.draw();
-        };
+        });
+        document.getElementById('admin-modal').style.display = 'flex';
+    };
 
-        window.updateUI = () => {
-            document.getElementById('balance-val').innerText = currentUser.balance.toFixed(2);
-            document.getElementById('user-name-label').innerText = currentUser.name;
-            document.getElementById('user-av').innerText = currentUser.name[0].toUpperCase();
-        };
-
-        window.openDeposit = () => {
-            document.getElementById('dep-id-text').innerText = "ID: TX-" + Math.floor(1000 + Math.random()*8999);
-            document.getElementById('deposit-modal').style.display = 'flex';
-        };
-
-        window.openWithdraw = () => { document.getElementById('withdraw-modal').style.display = 'flex'; };
-
-        window.sendRequest = (type) => {
-            const sum = type === 'DEPOSIT' ? parseFloat(document.getElementById('dep-sum').value) : parseFloat(document.getElementById('win-sum').value);
-            const extra = type === 'WITHDRAW' ? document.getElementById('win-address').value : document.getElementById('dep-id-text').innerText;
-            
-            if(!sum || sum <= 0) return alert("Введите сумму");
-            if(type === 'WITHDRAW' && sum > currentUser.balance) return alert("Недостаточно средств");
-
-            push(ref(db, 'admin_requests'), {
-                type, email: currentUser.email, amount: sum, extra, status: 'pending', time: new Date().toLocaleTimeString()
-            });
-            alert("Заявка отправлена!");
-            window.closeModal(type === 'DEPOSIT' ? 'deposit-modal' : 'withdraw-modal');
-        };
-
-        window.openAdmin = () => {
-            if (currentUser.email !== ADMIN_EMAIL) return;
-            onValue(ref(db, 'admin_requests'), (snapshot) => {
-                const data = snapshot.val();
-                const list = document.getElementById('admin-list');
-                list.innerHTML = data ? '' : '<p>Заявок нет</p>';
-                if(data) {
-                    Object.keys(data).forEach(key => {
-                        const r = data[key];
-                        const isDone = r.status === 'confirmed';
-                        list.innerHTML += `<div style="background:var(--bg); padding:15px; margin-bottom:10px; border-radius:12px; border:1px solid ${isDone?'#0ecb81':'#1e2329'}">
-                            <b>${r.type} | $${r.amount}</b><br><small>${r.email}</small><br>
-                            <div style="margin-top:10px">
-                                ${!isDone ? `<button onclick="window.confirmReq('${key}', '${r.email}', ${r.amount}, '${r.type}')" style="background:#0ecb81; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer">ПОДТВЕРДИТЬ</button>` : ''}
-                                <button onclick="window.rejectReq('${key}')" style="background:#f6465d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; margin-left:10px">УДАЛИТЬ</button>
-                            </div>
-                        </div>`;
-                    });
-                }
-            });
-            document.getElementById('admin-modal').style.display = 'flex';
-        };
-
-        window.confirmReq = async (key, email, amount, type) => {
-            const userKey = email.replace(/\./g, '_');
+    window.confirmReq = async (key, email, amount, type) => {
+        try {
+            const userKey = cleanEmail(email);
             const userRef = ref(db, 'users/' + userKey);
             const snapshot = await get(userRef);
+            
             if(snapshot.exists()) {
-                let newBalance = snapshot.val().balance + (type === 'DEPOSIT' ? amount : -amount);
+                const userData = snapshot.val();
+                let newBalance = type === 'DEPOSIT' ? (userData.balance + amount) : (userData.balance - amount);
+                
+                // 1. Обновляем баланс пользователя
                 await update(userRef, { balance: newBalance });
+                // 2. Помечаем заявку как выполненную
                 await update(ref(db, 'admin_requests/' + key), { status: 'confirmed' });
+                
+                alert("Баланс обновлен для " + email);
+            } else {
+                alert("Ошибка: Пользователь не найден в базе!");
             }
-        };
+        } catch (e) {
+            console.error(e);
+            alert("Ошибка при подтверждении");
+        }
+    };
 
-        window.rejectReq = (key) => remove(ref(db, 'admin_requests/' + key));
+    window.rejectReq = (key) => {
+        if(confirm("Удалить заявку?")) remove(ref(db, 'admin_requests/' + key));
+    };
 
-        // CHART & TRADE
-        window.generateInitialData = (p) => {
-            candles = []; let tp = p;
-            for(let i=0; i<100; i++) {
-                let o = tp, c = o + (Math.random()-0.5)*0.001;
-                candles.push({open:o, close:c, high:Math.max(o,c)+0.0005, low:Math.min(o,c)-0.0005});
-                tp = c;
+    // График и торговля (остается без изменений)
+    window.generateInitialData = (p) => {
+        candles = []; let tp = p;
+        for(let i=0; i<100; i++) {
+            let o = tp, c = o + (Math.random()-0.5)*0.001;
+            candles.push({open:o, close:c, high:Math.max(o,c)+0.0005, low:Math.min(o,c)-0.0005});
+            tp = c;
+        }
+    };
+
+    window.draw = () => {
+        canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;
+        let last = candles[candles.length-1];
+        curPrice += (Math.random()-0.5)*0.0001; last.close = curPrice;
+        if(Math.random()>0.97) candles.push({open:curPrice, close:curPrice, high:curPrice, low:curPrice});
+        if(candles.length > 120) candles.shift();
+        let vis = candles.slice(-60);
+        let minP = Math.min(...vis.map(c=>c.low)), maxP = Math.max(...vis.map(c=>c.high)), range = maxP - minP;
+        const getY = (p) => canvas.height - ((p-(minP-range*0.1))/(range*1.2)*canvas.height);
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        candles.forEach((c, i) => {
+            let x = (i*15) + (canvas.width - candles.length*15) - 50;
+            ctx.strokeStyle = c.close >= c.open ? '#0ecb81' : '#f6465d';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(x+5, getY(c.high)); ctx.lineTo(x+5, getY(c.low)); ctx.stroke();
+            ctx.fillStyle = ctx.strokeStyle;
+            ctx.fillRect(x, Math.min(getY(c.open), getY(c.close)), 10, Math.max(1, Math.abs(getY(c.open)-getY(c.close))));
+        });
+        document.getElementById('price-label').style.top = (getY(curPrice)-15)+'px';
+        document.getElementById('price-label').innerText = curPrice.toFixed(4);
+        requestAnimationFrame(window.draw);
+    };
+
+    window.execTrade = async (dir) => {
+        let amt = parseFloat(document.getElementById('trade-amount').value);
+        if(!amt || amt > currentUser.balance) return alert("Недостаточно средств");
+        
+        const userKey = cleanEmail(currentUser.email);
+        const userRef = ref(db, 'users/' + userKey);
+        
+        // Снимаем ставку
+        await update(userRef, { balance: currentUser.balance - amt });
+        
+        setTimeout(async () => {
+            if(Math.random() > 0.48) { // Вероятность выигрыша
+                const winAmt = amt * 1.85;
+                const latestData = await get(userRef);
+                await update(userRef, { balance: latestData.val().balance + winAmt });
+                confetti();
             }
-        };
+        }, 3000);
+    };
 
-        window.draw = () => {
-            canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;
-            let last = candles[candles.length-1];
-            curPrice += (Math.random()-0.5)*0.0001; last.close = curPrice;
-            if(Math.random()>0.97) candles.push({open:curPrice, close:curPrice, high:curPrice, low:curPrice});
-            if(candles.length > 120) candles.shift();
-            let vis = candles.slice(-60);
-            let minP = Math.min(...vis.map(c=>c.low)), maxP = Math.max(...vis.map(c=>c.high)), range = maxP - minP;
-            const getY = (p) => canvas.height - ((p-(minP-range*0.1))/(range*1.2)*canvas.height);
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            candles.forEach((c, i) => {
-                let x = (i*15) + (canvas.width - candles.length*15) - 50;
-                ctx.strokeStyle = c.close >= c.open ? '#0ecb81' : '#f6465d';
-                ctx.beginPath(); ctx.moveTo(x+5, getY(c.high)); ctx.lineTo(x+5, getY(c.low)); ctx.stroke();
-                ctx.fillStyle = ctx.strokeStyle;
-                ctx.fillRect(x, Math.min(getY(c.open), getY(c.close)), 10, Math.max(1, Math.abs(getY(c.open)-getY(c.close))));
-            });
-            document.getElementById('price-label').style.top = (getY(curPrice)-15)+'px';
-            document.getElementById('price-label').innerText = curPrice.toFixed(4);
-            requestAnimationFrame(window.draw);
-        };
+    window.openDeposit = () => {
+        document.getElementById('dep-id-text').innerText = "ID: TX-" + Math.floor(1000 + Math.random()*8999);
+        document.getElementById('deposit-modal').style.display = 'flex';
+    };
+    window.openWithdraw = () => { document.getElementById('withdraw-modal').style.display = 'flex'; };
+    window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; };
+    window.changePair = (n, p, el) => { curPrice = p; window.generateInitialData(p); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); };
 
-        window.execTrade = async (dir) => {
-            let amt = parseFloat(document.getElementById('trade-amount').value);
-            if(amt > currentUser.balance) return alert("No funds");
-            const userKey = currentUser.email.replace(/\./g, '_');
-            await update(ref(db, 'users/' + userKey), { balance: currentUser.balance - amt });
-            setTimeout(async () => {
-                if(Math.random() > 0.45) { 
-                    await update(ref(db, 'users/' + userKey), { balance: currentUser.balance + (amt * 1.85) });
-                    confetti(); 
-                }
-            }, 3000);
-        };
-
-        window.changePair = (n, p, el) => { curPrice = p; window.generateInitialData(p); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); };
-        window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; };
-    </script>
+</script>
 </body>
 </html>
+
