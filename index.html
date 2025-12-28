@@ -42,10 +42,6 @@
         .btn-up { background: var(--success); color: white; }
         .btn-down { background: var(--danger); color: white; }
 
-        /* ACTIVE POSITION MARKER */
-        #active-trade-card { position: absolute; bottom: 30px; left: 20px; width: 180px; background: var(--card); border: 1px solid var(--accent); border-radius: 16px; padding: 15px; display: none; z-index: 200; }
-        .card-timer { background: rgba(0, 122, 255, 0.1); color: var(--accent); padding: 8px; border-radius: 8px; text-align: center; font-family: monospace; font-size: 22px; margin-top: 10px; font-weight: bold; }
-
         /* MODALS */
         .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-card { background: var(--card); padding: 35px; border-radius: 28px; border: 1px solid var(--grid); width: 380px; text-align: center; }
@@ -54,11 +50,7 @@
 
         #price-label { position: absolute; right: 0; background: var(--accent); color: white; padding: 4px 12px; font-size: 14px; font-weight: bold; border-radius: 6px 0 0 6px; z-index: 50; box-shadow: 0 0 20px rgba(0,122,255,0.4); }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* DISCLAIMER ICON */
         #disclaimer-icon { position: fixed; bottom: 15px; right: 15px; width: 22px; height: 22px; background: var(--grid); color: var(--text-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; z-index: 9999; border: 1px solid var(--grid); transition: 0.3s; }
-        #disclaimer-icon:hover { background: var(--accent); color: white; border-color: var(--accent); }
     </style>
 </head>
 <body>
@@ -68,36 +60,34 @@
             <h2 style="margin-bottom:20px">TERMINAL LOGIN</h2>
             <input type="email" id="auth-email" class="t-input" style="width:100%; margin-bottom:12px; box-sizing:border-box" placeholder="Email">
             <input type="password" id="auth-pass" class="t-input" style="width:100%; margin-bottom:20px; box-sizing:border-box" placeholder="Password">
-            <button class="btn-action btn-up" style="width:100%" onclick="handleAuth()">ВОЙТИ</button>
+            <button class="btn-action btn-up" style="width:100%" onclick="window.handleAuth()">ВОЙТИ</button>
         </div>
     </div>
 
     <div id="deposit-modal" class="modal-overlay">
         <div class="modal-card">
-            <h3 style="margin-top:0">ПОПОЛНЕНИЕ</h3>
-            <div class="crypto-item" onclick="copyAddr('bc1qxhq07qh5qnfly8n2mwm99jarw5tjcxwuvz248c')">
-                <b style="color:#f7931a">Bitcoin (BTC)</b><br>
-                <small>bc1qxhq07qh5qnfly8n2mwm99jarw5tjcxwuvz248c</small>
+            <h3>ПОПОЛНЕНИЕ</h3>
+            <div class="crypto-item" onclick="window.copyAddr('bc1qxhq07qh5qnfly8n2mwm99jarw5tjcxwuvz248c')">
+                <b style="color:#f7931a">Bitcoin (BTC)</b><br><small>bc1qxhq07qh5qnfly8n2mwm99jarw5tjcxwuvz248c</small>
             </div>
-            <div class="crypto-item" onclick="copyAddr('UQBTTYmiLQCee3C9T9yHQN8EflmXWNp1DN4BlKj1dJCbpAk-')">
-                <b style="color:#0088cc">TON Coin</b><br>
-                <small>UQBTTYmiLQCee3C9T9yHQN8EflmXWNp1DN4BlKj1dJCbpAk-</small>
+            <div class="crypto-item" onclick="window.copyAddr('UQBTTYmiLQCee3C9T9yHQN8EflmXWNp1DN4BlKj1dJCbpAk-')">
+                <b style="color:#0088cc">TON Coin</b><br><small>UQBTTYmiLQCee3C9T9yHQN8EflmXWNp1DN4BlKj1dJCbpAk-</small>
             </div>
             <div class="id-badge" id="dep-id-text">ID: TX-0000</div>
             <input type="number" id="dep-sum" class="t-input" style="width:100%; margin-bottom:15px; box-sizing:border-box" placeholder="Сумма в $">
-            <button class="btn-action btn-up" style="width:100%" onclick="sendRequest()">Я ОПЛАТИЛ</button>
-            <button onclick="closeModal('deposit-modal')" style="background:none; border:none; color:var(--text-muted); margin-top:15px; cursor:pointer">Закрыть</button>
+            <button class="btn-action btn-up" style="width:100%" onclick="window.sendDepRequest()">Я ОПЛАТИЛ</button>
+            <button onclick="window.closeModal('deposit-modal')" style="background:none; border:none; color:var(--text-muted); margin-top:15px; cursor:pointer">Закрыть</button>
         </div>
     </div>
 
     <div id="withdraw-modal" class="modal-overlay">
         <div class="modal-card">
-            <h3 style="margin-top:0">ВЫВОД СРЕДСТВ</h3>
+            <h3>ВЫВОД СРЕДСТВ</h3>
             <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px;">Введите свой кошелек в тонах (TON)</p>
             <input type="text" id="withdraw-wallet" class="t-input" style="width:100%; margin-bottom:12px; box-sizing:border-box" placeholder="Адрес TON кошелька">
             <input type="number" id="withdraw-sum" class="t-input" style="width:100%; margin-bottom:20px; box-sizing:border-box" placeholder="Сумма в $">
-            <button class="btn-action btn-up" style="width:100%" onclick="sendWithdrawRequest()">СОЗДАТЬ ЗАЯВКУ</button>
-            <button onclick="closeModal('withdraw-modal')" style="background:none; border:none; color:var(--text-muted); margin-top:15px; cursor:pointer">Отмена</button>
+            <button class="btn-action btn-up" style="width:100%" onclick="window.sendWithdrawRequest()">СОЗДАТЬ ЗАЯВКУ</button>
+            <button onclick="window.closeModal('withdraw-modal')" style="background:none; border:none; color:var(--text-muted); margin-top:15px; cursor:pointer">Отмена</button>
         </div>
     </div>
 
@@ -105,7 +95,7 @@
         <div class="modal-card" style="width:500px">
             <h3>ПАНЕЛЬ УПРАВЛЕНИЯ</h3>
             <div id="admin-list" style="text-align:left; max-height:400px; overflow-y:auto"></div>
-            <button onclick="closeModal('admin-modal')" class="btn-action btn-down" style="width:100%; margin-top:20px">ЗАКРЫТЬ</button>
+            <button onclick="window.closeModal('admin-modal')" class="btn-action btn-down" style="width:100%; margin-top:20px">ЗАКРЫТЬ</button>
         </div>
     </div>
 
@@ -114,34 +104,28 @@
             <div class="avatar" id="user-av">?</div>
             <div class="user-info">
                 <span id="user-name-label" style="font-weight:700">Guest</span>
-                <span class="user-status" onclick="openAdmin()" style="cursor:pointer">VIP TRADER</span>
+                <span class="user-status" onclick="window.openAdmin()" style="cursor:pointer">VIP TRADER</span>
             </div>
         </div>
         <div style="font-weight:900; font-size:22px">BINARY<span style="color:var(--accent)">PRO</span></div>
         <div class="header-controls">
-            <div class="withdraw-btn" onclick="openWithdraw()">ВЫВЕСТИ</div>
-            <div class="balance-box" onclick="openDeposit()">💰 $<span id="balance-val">0.00</span></div>
+            <div class="withdraw-btn" onclick="window.openWithdraw()">ВЫВЕСТИ</div>
+            <div class="balance-box" onclick="window.openDeposit()">💰 $<span id="balance-val">0.00</span></div>
         </div>
     </div>
 
     <div class="wrapper">
         <div class="left-menu">
-            <div class="nav-btn active" onclick="changePair('EUR/USD', 1.0854, this)">🇪🇺 EUR / USD</div>
-            <div class="nav-btn" onclick="changePair('BTC/USD', 64230, this)">₿ BTC / USD</div>
+            <div class="nav-btn active" onclick="window.changePair('EUR/USD', 1.0854, this)">🇪🇺 EUR / USD</div>
+            <div class="nav-btn" onclick="window.changePair('BTC/USD', 64230, this)">₿ BTC / USD</div>
         </div>
         <div class="center-chart">
             <div id="price-label">0.0000</div>
             <canvas id="mainCanvas"></canvas>
-            <div id="active-trade-card">
-                <div style="font-size:10px; color:var(--text-muted)">ACTIVE POSITION</div>
-                <div id="trade-dir-label" style="font-size:20px; font-weight:900;">CALL</div>
-                <div class="card-timer" id="trade-timer">00:00</div>
-            </div>
             <div class="trade-panel">
                 <div class="input-group"><label>Amount</label><input type="number" id="trade-amount" class="t-input" value="100"></div>
-                <div class="input-group"><label>Time</label><select id="trade-time" class="t-input"><option value="1">1 MIN</option></select></div>
-                <button class="btn-action btn-up" onclick="execTrade('UP')">Higher</button>
-                <button class="btn-action btn-down" onclick="execTrade('DOWN')">Lower</button>
+                <button class="btn-action btn-up" onclick="window.execTrade('UP')">Higher</button>
+                <button class="btn-action btn-down" onclick="window.execTrade('DOWN')">Lower</button>
             </div>
         </div>
         <div class="right-stats">
@@ -150,20 +134,30 @@
         </div>
     </div>
 
-    <div id="disclaimer-icon" onclick="alert('Это развлекательный симулятор. Автор не несет ответственности за ваши действия.')" onmouseover="document.getElementById('disclaimer-text').style.display='block'" onmouseout="document.getElementById('disclaimer-text').style.display='none'">
-        i
-        <div id="disclaimer-text" style="display: none; position: absolute; bottom: 30px; right: 0; width: 220px; background: var(--card); color: var(--text-muted); padding: 12px; border-radius: 10px; border: 1px solid var(--grid); font-size: 10px; line-height: 1.4; pointer-events: none; text-align: left;">
-            <b>ОТКАЗ ОТ ОТВЕТСТВЕННОСТИ:</b><br>
-            Данный ресурс является развлекательным симулятором. Мы не несем ответственности за любые ваши действия.
-        </div>
-    </div>
+    <div id="disclaimer-icon" onclick="alert('Это развлекательный симулятор. Автор не несет ответственности.')">i</div>
 
-    <script>
-        const ADMIN_EMAIL = "admin@gmail.com"; 
-        let balance = 0, curPrice = 1.0854, candles = [], activeTrade = null, currentUser = null;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAK46OnSgyg2PzfINXBetYjsFklE17wt50",
+            authDomain: "binaryterminal-5b332.firebaseapp.com",
+            databaseURL: "https://binaryterminal-5b332-default-rtdb.firebaseio.com/",
+            projectId: "binaryterminal-5b332",
+            storageBucket: "binaryterminal-5b332.firebasestorage.app",
+            messagingSenderId: "193639989066",
+            appId: "1:193639989066:web:2717357e512ab2b945cbb3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const ADMIN_EMAIL = "admin@gmail.com";
+        let balance = 0, curPrice = 1.0854, candles = [], currentUser = null;
         const canvas = document.getElementById('mainCanvas'), ctx = canvas.getContext('2d');
 
-        function handleAuth() {
+        window.handleAuth = () => {
             const email = document.getElementById('auth-email').value;
             const pass = document.getElementById('auth-pass').value;
             if(!email.includes('@')) return alert("Invalid Email");
@@ -173,88 +167,78 @@
                 currentUser = user; balance = user.balance;
             } else {
                 currentUser = { email, pass, balance: 0, name: email.split('@')[0] };
-                balance = 0; saveUser();
+                balance = 0; 
             }
             document.getElementById('auth-modal').style.display = 'none';
-            updateUI(); generateInitialData(curPrice); draw();
-        }
+            window.updateUI(); window.generateInitialData(curPrice); window.draw();
+        };
 
-        function saveUser() { if(currentUser) { currentUser.balance = balance; localStorage.setItem('up_user_' + currentUser.email, JSON.stringify(currentUser)); } }
-        function updateUI() { document.getElementById('balance-val').innerText = balance.toFixed(2); document.getElementById('user-name-label').innerText = currentUser.name; document.getElementById('user-av').innerText = currentUser.name[0].toUpperCase(); }
-        
-        function openDeposit() { 
+        window.updateUI = () => {
+            document.getElementById('balance-val').innerText = balance.toFixed(2);
+            document.getElementById('user-name-label').innerText = currentUser.name;
+            document.getElementById('user-av').innerText = currentUser.name[0].toUpperCase();
+            if(currentUser) { currentUser.balance = balance; localStorage.setItem('up_user_' + currentUser.email, JSON.stringify(currentUser)); }
+        };
+
+        window.openDeposit = () => {
             const id = "TX-" + Math.floor(1000 + Math.random()*8999);
             document.getElementById('dep-id-text').innerText = "COMMENT: " + id;
             document.getElementById('deposit-modal').style.display = 'flex';
-        }
+        };
 
-        function openWithdraw() { document.getElementById('withdraw-modal').style.display = 'flex'; }
-
-        function sendWithdrawRequest() {
-            const sum = parseFloat(document.getElementById('withdraw-sum').value);
-            const wallet = document.getElementById('withdraw-wallet').value;
-            if(!sum || sum <= 0 || sum > balance || !wallet) return alert("Проверьте данные или баланс");
-            balance -= sum; updateUI(); saveUser();
-            let reqs = JSON.parse(localStorage.getItem('admin_reqs') || "[]");
-            reqs.push({ type: 'WITHDRAW', email: currentUser.email, amount: sum, id: "TON: " + wallet, time: new Date().toLocaleTimeString() });
-            localStorage.setItem('admin_reqs', JSON.stringify(reqs));
-            alert("Заявка на вывод создана!"); closeModal('withdraw-modal');
-        }
-
-        function sendRequest() {
+        window.sendDepRequest = () => {
             const sum = parseFloat(document.getElementById('dep-sum').value);
             if(!sum || sum <= 0) return alert("Enter sum");
-            let reqs = JSON.parse(localStorage.getItem('admin_reqs') || "[]");
-            reqs.push({ type: 'DEPOSIT', email: currentUser.email, amount: sum, id: document.getElementById('dep-id-text').innerText, time: new Date().toLocaleTimeString() });
-            localStorage.setItem('admin_reqs', JSON.stringify(reqs));
-            alert("Заявка отправлена!"); closeModal('deposit-modal');
-        }
+            push(ref(db, 'admin_requests'), {
+                type: 'DEPOSIT', email: currentUser.email, amount: sum, id: document.getElementById('dep-id-text').innerText, time: new Date().toLocaleTimeString()
+            });
+            alert("Заявка отправлена!"); window.closeModal('deposit-modal');
+        };
 
-        function openAdmin() {
+        window.openWithdraw = () => { document.getElementById('withdraw-modal').style.display = 'flex'; };
+
+        window.sendWithdrawRequest = () => {
+            const sum = parseFloat(document.getElementById('withdraw-sum').value);
+            const wallet = document.getElementById('withdraw-wallet').value;
+            if(!sum || sum <= 0 || sum > balance || !wallet) return alert("Ошибка данных или баланса");
+            balance -= sum; window.updateUI();
+            push(ref(db, 'admin_requests'), {
+                type: 'WITHDRAW', email: currentUser.email, amount: sum, id: "TON: " + wallet, time: new Date().toLocaleTimeString()
+            });
+            alert("Заявка на вывод создана!"); window.closeModal('withdraw-modal');
+        };
+
+        window.openAdmin = () => {
             if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
             const list = document.getElementById('admin-list');
-            const reqs = JSON.parse(localStorage.getItem('admin_reqs') || "[]");
-            list.innerHTML = reqs.length ? '' : '<p>Нет заявок</p>';
-            reqs.forEach((r, i) => {
-                const color = r.type === 'WITHDRAW' ? 'var(--danger)' : 'var(--success)';
-                list.innerHTML += `<div style="background:var(--bg); padding:15px; border-radius:10px; margin-bottom:10px; border:1px solid var(--grid)">
-                    <b style="color:${color}">${r.type}</b> | <b>${r.email}</b> | $${r.amount}<br><small>${r.id}</small><br>
-                    ${r.type === 'DEPOSIT' ? `<button onclick="approve(${i})" style="background:var(--success); color:white; border:none; padding:8px; border-radius:5px; margin-top:10px; cursor:pointer">ПОДТВЕРДИТЬ</button>` : ''}
-                    <button onclick="reject(${i})" style="background:var(--danger); color:white; border:none; padding:8px; border-radius:5px; cursor:pointer">УДАЛИТЬ</button>
-                </div>`;
+            onValue(ref(db, 'admin_requests'), (snapshot) => {
+                const data = snapshot.val();
+                list.innerHTML = data ? '' : '<p>Нет заявок</p>';
+                if(data) {
+                    Object.keys(data).forEach(key => {
+                        const r = data[key];
+                        list.innerHTML += `<div style="background:var(--bg); padding:10px; margin-bottom:5px; border-radius:8px; border:1px solid var(--grid)">
+                            <b>${r.type}</b> | ${r.email} | $${r.amount}<br><small>${r.id}</small><br>
+                            <button onclick="window.rejectReq('${key}')" style="background:var(--danger); color:white; border:none; padding:5px; border-radius:4px; cursor:pointer; margin-top:5px">УДАЛИТЬ</button>
+                        </div>`;
+                    });
+                }
             });
             document.getElementById('admin-modal').style.display = 'flex';
-        }
+        };
 
-        function approve(idx) {
-            let reqs = JSON.parse(localStorage.getItem('admin_reqs'));
-            let r = reqs[idx];
-            let user = JSON.parse(localStorage.getItem('up_user_' + r.email));
-            user.balance += r.amount;
-            localStorage.setItem('up_user_' + r.email, JSON.stringify(user));
-            if(currentUser.email === r.email) { balance = user.balance; updateUI(); }
-            reqs.splice(idx, 1);
-            localStorage.setItem('admin_reqs', JSON.stringify(reqs));
-            openAdmin();
-        }
+        window.rejectReq = (key) => { remove(ref(db, 'admin_requests/' + key)); };
 
-        function reject(idx) {
-            let reqs = JSON.parse(localStorage.getItem('admin_reqs'));
-            reqs.splice(idx, 1);
-            localStorage.setItem('admin_reqs', JSON.stringify(reqs));
-            openAdmin();
-        }
-
-        function generateInitialData(p) {
+        window.generateInitialData = (p) => {
             candles = []; let tp = p;
             for(let i=0; i<100; i++) {
                 let o = tp, c = o + (Math.random()-0.5)*0.001;
                 candles.push({open:o, close:c, high:Math.max(o,c)+0.0005, low:Math.min(o,c)-0.0005});
                 tp = c;
             }
-        }
+        };
 
-        function draw() {
+        window.draw = () => {
             canvas.width = canvas.parentElement.offsetWidth; canvas.height = canvas.parentElement.offsetHeight;
             let last = candles[candles.length-1];
             curPrice += (Math.random()-0.5)*0.0001; last.close = curPrice;
@@ -266,71 +250,31 @@
             const getY = (p) => canvas.height - ((p-(minP-range*0.1))/(range*1.2)*canvas.height);
 
             ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.strokeStyle = '#1e2329';
-            for(let i=1; i<10; i++) { ctx.beginPath(); ctx.moveTo(0,canvas.height/10*i); ctx.lineTo(canvas.width,canvas.height/10*i); ctx.stroke(); }
-
             candles.forEach((c, i) => {
                 let x = (i*15) + (canvas.width - candles.length*15) - 50;
-                ctx.strokeStyle = c.close >= c.open ? '#0ecb81' : '#f6465d'; ctx.lineWidth = 2;
+                ctx.strokeStyle = c.close >= c.open ? '#0ecb81' : '#f6465d';
                 ctx.beginPath(); ctx.moveTo(x+5, getY(c.high)); ctx.lineTo(x+5, getY(c.low)); ctx.stroke();
                 ctx.fillStyle = ctx.strokeStyle;
                 ctx.fillRect(x, Math.min(getY(c.open), getY(c.close)), 10, Math.max(1, Math.abs(getY(c.open)-getY(c.close))));
             });
-
-            if(activeTrade) {
-                ctx.setLineDash([5, 5]); ctx.strokeStyle = activeTrade.type === 'UP' ? '#0ecb81' : '#f6465d';
-                ctx.beginPath(); ctx.moveTo(0, getY(activeTrade.entry)); ctx.lineTo(canvas.width, getY(activeTrade.entry)); ctx.stroke();
-                ctx.setLineDash([]);
-            }
-
             document.getElementById('price-label').style.top = (getY(curPrice)-15)+'px';
             document.getElementById('price-label').innerText = curPrice.toFixed(4);
-            requestAnimationFrame(draw);
-        }
+            requestAnimationFrame(window.draw);
+        };
 
-        function execTrade(dir) {
-            if(activeTrade) return;
+        window.execTrade = (dir) => {
             let amt = parseFloat(document.getElementById('trade-amount').value);
             if(amt > balance) return alert("No funds");
-            balance -= amt; updateUI(); saveUser();
-            activeTrade = { type: dir, entry: curPrice, sec: 60 };
-            document.getElementById('active-trade-card').style.display = 'block';
-            document.getElementById('trade-dir-label').innerText = dir === 'UP' ? 'CALL' : 'PUT';
-            document.getElementById('trade-dir-label').style.color = dir === 'UP' ? 'var(--success)' : 'var(--danger)';
-            let t = setInterval(() => {
-                activeTrade.sec--;
-                document.getElementById('trade-timer').innerText = `00:${activeTrade.sec < 10 ? '0' : ''}${activeTrade.sec}`;
-                if(activeTrade.sec <= 0) {
-                    clearInterval(t);
-                    if((dir==='UP' && curPrice > activeTrade.entry) || (dir==='DOWN' && curPrice < activeTrade.entry)) { balance += amt * 1.85; confetti(); }
-                    activeTrade = null; document.getElementById('active-trade-card').style.display = 'none';
-                    updateUI(); saveUser();
-                }
-            }, 1000);
-        }
+            balance -= amt; window.updateUI();
+            setTimeout(() => {
+                if(Math.random() > 0.5) { balance += amt * 1.85; confetti(); }
+                window.updateUI();
+            }, 3000);
+        };
 
-        const botNames = ["Trader_Ivan", "Crypto_Queen", "Mamba_FX", "Bull_Rider", "Alex_Gold", "Elena_Binary", "Profit_Maker", "Rich_Boy", "Sergey_V", "Trade_Master", "Satoshi_N", "Wolf_of_Wall", "Oleg_T", "Dmitry_Trade", "Lucky_Punch"];
-        setInterval(() => {
-            const feed = document.getElementById('live-feed');
-            if (!feed) return;
-            const randomBot = botNames[Math.floor(Math.random() * botNames.length)];
-            const tradeAmount = (Math.random() * 490 + 10).toFixed(2);
-            const isWin = Math.random() > 0.40;
-            const tradeItem = document.createElement('div');
-            tradeItem.style.cssText = `display: flex; justify-content: space-between; font-size: 12px; padding: 8px 0; border-bottom: 1px solid var(--grid); animation: fadeIn 0.4s ease;`;
-            if (isWin) {
-                const profit = (tradeAmount * 1.85).toFixed(2);
-                tradeItem.innerHTML = `<span style="color: var(--text-muted)">${randomBot}</span><span style="color: var(--success); font-weight: bold">+$${profit}</span>`;
-            } else {
-                tradeItem.innerHTML = `<span style="color: var(--text-muted)">${randomBot}</span><span style="color: var(--danger); font-weight: bold">-$${tradeAmount}</span>`;
-            }
-            feed.prepend(tradeItem);
-            if (feed.children.length > 12) feed.lastChild.remove();
-        }, 3000);
-
-        function changePair(n, p, el) { curPrice = p; generateInitialData(p); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function copyAddr(a) { navigator.clipboard.writeText(a); alert("Скопировано!"); }
+        window.changePair = (n, p, el) => { curPrice = p; window.generateInitialData(p); document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); };
+        window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; };
+        window.copyAddr = (a) => { navigator.clipboard.writeText(a); alert("Скопировано!"); };
     </script>
 </body>
 </html>
